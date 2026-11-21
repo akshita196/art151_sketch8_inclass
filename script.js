@@ -226,7 +226,14 @@ nn.on("load", () => {
     setGravity(640);
 
     let facing = RIGHT;
-
+    
+    if (!bgm) {
+      bgm = play("bg_music", {
+        loop: true,
+        volume: 0.5,
+      });
+    }
+    
     const scoreText = add([
       text(gameScore.toString(), {
         size: 24,
@@ -383,8 +390,11 @@ loop(15, spawnEnemyWave);
     onGamepadButtonPress("south", shoot);
     onKeyPress("f", shoot);
     // shoot controls
-
-
+      
+    // music toggle 
+    onKeyPress("space", () => {
+      bgm.paused = !bgm.paused;
+    });
 
     // CAMERA
 
@@ -513,9 +523,14 @@ loop(15, spawnEnemyWave);
     setGravity(640);
 
     let facing = RIGHT;
-
-
-
+    
+    if (!bgm) {
+      bgm = play("bg_music", {
+        loop: true,
+        volume: 0.5,
+      });
+    }
+    
     const scoreText = add([
       text(gameScore.toString(), {
         size: 24,
@@ -698,6 +713,11 @@ loop(15, spawnEnemyWave);
     }
     onGamepadButtonPress("south", shoot);
     onKeyPress("f", shoot);
+      
+    // music toggle
+    onKeyPress("space", () => {
+      bgm.paused = !bgm.paused;
+    });
 
 
 
