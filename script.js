@@ -1,6 +1,6 @@
 //SKETCH 8
-//COMPLETED BY: your name
-///DATE: 
+//COMPLETED BY: Akshita Addepalli
+///DATE: 20th november 2026
 
 nn.on("load", () => {
 
@@ -30,7 +30,7 @@ nn.on("load", () => {
     },
 
     // background color
-
+    background: [211, 211, 211]
     // background settings
 
   });
@@ -53,6 +53,9 @@ nn.on("load", () => {
 
   let spawnSide = "left";
 
+  // remix - goal of 50 for score, and maximum 3 lives
+  const SCORE_GOAL = 50;
+  let lives = 3;
 
 
 
@@ -61,68 +64,68 @@ nn.on("load", () => {
   // player sprite
 
   loadSprite(
-    "name",
+    "player", "assets/player.png",
 
     // sprite file
 
-    {
-
-      // sprite animation
-
+    { // sprite animation
+      sliceX: 4,
+      sliceY: 4,
+      anims: {
+        forward: {
+          from: 0,
+          to: 3,
+          speed: 5,
+          loop: true
+        },
+        back: {
+          from: 4,
+          to: 7,
+          speed: 10,
+          loop: true
+        },
+        "left": {
+          from: 8,
+          to: 11,
+          speed: 10,
+          loop: true
+        },
+        "right": {
+          from: 12,
+          to: 15,
+          speed: 10,
+          loop: true
+        },
+      },
     }
   );
 
-  // idle sprite
-
-  loadSprite(
-    "name",
-
-    // sprite file
-
-    {
-
-      // frame animation
-
-    }
-  );
 
   // enemy sprite
 
-  loadSprite(
-    "name",
+  loadSprite("chicken", "assets/chicken.png");
 
-    // enemy file
-  );
+  // enemy file
 
   // collectible sprite
 
-  loadSprite(
-    "name",
+  loadSprite("egg", "assets/egg.png");
 
-    // collectible file
-  );
+  // collectible file
 
 
 
   // AUDIO ASSETS
 
-  loadSound(
-    "name",
+  loadSound("egg_collect", "assets/pop.mp3");
 
-    // sound file
-  );
+  // sound file
 
-  loadSound(
-    "name",
+  loadSound("chicken_hit", "assets/hurt.mp3");
 
-    // sound file
-  );
+  loadMusic("bg_music", "assets/music.mp3");
 
-  loadMusic(
-    "name",
-
-    // music file
-  );
+  // music file
 
 
 
@@ -131,6 +134,15 @@ nn.on("load", () => {
   function playSoundEffect () {
 
     // sound logic
+    if (!isPlaying) {
+      isPlaying = true;
+      soundEffect = play("egg_collect", {
+        volume: 0.04,
+      });
+      soundEffect.onEnd(() => {
+        isPlaying = false;
+      })
+    }
 
   }
 
@@ -139,7 +151,15 @@ nn.on("load", () => {
   function makePlatform (x, y, w, colorValue) {
 
     add([
-
+      rect(w, 40),
+      area(),
+      outline(),
+      pos(x, y),
+      body({
+        isStatic: true
+      }),
+      color(colorValue),
+      "platform"
       // platform setup
 
     ]);
@@ -151,7 +171,13 @@ nn.on("load", () => {
   function spawnCollectible () {
 
     add([
-
+      sprite("egg"),
+      pos(rand(0, width()), rand(0, height())),
+      scale(rand(0.5, 1.5)),
+      rotate(rand(0, 65)),
+      area(),
+      anchor("center"),
+      "collectible"
       // collectible setup
 
     ]);
@@ -163,11 +189,20 @@ nn.on("load", () => {
   function spawnEnemy () {
 
     const enemy = add([
-
+      sprite("chicken"),
+      pos(rand(100, width() - 100), rand(100, height() - 100)),
+      area(),
+      anchor("center"),
+      "enemy"
+      
       // enemy setup
 
     ]);
-
+    wait(rand(3, 30), () => {
+      if(enemy.exists()) {
+        destroy(enemy);
+      }
+    });
     // enemy timer
 
   }
@@ -175,9 +210,11 @@ nn.on("load", () => {
 
 
   function spawnEnemyWave () {
-
+    const amount = randi(2,5)
     // wave logic
-
+    for (let i = 0; i < amount; i++) {
+      spawnEnemy()
+    }
   }
 
 
@@ -191,51 +228,73 @@ nn.on("load", () => {
     let facing = RIGHT;
 
     const scoreText = add([
+      text(gameScore.toString(), {
+        size: 24,
+      }),
+      pos(24, 24),
+      color(BLACK)
 
       // score display
 
     ]);
 
     const timer = add([
-
+      text(timeLeft.toFixed(0)),
+      pos(width()-24, 24),
+      anchor("topright"),
+      color(BLACK)
       // timer display
 
     ]);
 
-
+    // remix - display of lives 
+    const livesDis = add([
+      text("Lives: "+ lives, {
+        size: 24,
+      }),
+      pos(24, 56),
+      color(BLACK)
+    ]);
 
     const player = add([
-
+      sprite("player"),
+      pos(center()),
+      anchor("center"), 
+      area(),
+      body({
+        jumpForce: JUMP_FORCE,
+      }),
+      doubleJump(),
       // player setup
 
     ]);
-
-
-
+    player.play("forward");
     // LEVEL EXIT
 
     const levelExit = add([
-
+      rect(10, height()),
+      pos(width()-10,0),
+      area(),
+      color(GREEN),
+      "levelExit"
       // exit setup
 
     ]);
 
-
-
     // PLATFORMS
-
-    makePlatform(
-
-      // floor platform
-
-    );
+    makePlatform(0, height()-24, width(), MAGENTA);
 
 
 
     for (let i = 0; i < 5; i++) {
 
       // random platforms
-
+      makePlatform(
+      rand(0, width()-250),
+        height()-150 - (i*100),
+        rand(50, 230),
+        rgb(rand(0,255),0,rand(0,255))
+      )
     }
 
 
@@ -250,14 +309,14 @@ nn.on("load", () => {
 
     // collectible loop
 
-
+loop(5, spawnCollectible);
 
     // ENEMIES
 
     spawnEnemyWave();
 
     // enemy loop
-
+loop(15, spawnEnemyWave);
 
 
     // CONTROLS
@@ -265,6 +324,10 @@ nn.on("load", () => {
     onButtonDown("moveRight", () => {
 
       // move right
+      player.move(SPEED, 0);
+      facing = RIGHT;
+        playSoundEffect();
+      player.play("right");
 
     });
 
@@ -273,7 +336,10 @@ nn.on("load", () => {
     onButtonDown("moveLeft", () => {
 
       // move left
-
+      player.move(-SPEED, 0);
+      facing = LEFT;
+        playSoundEffect();
+      player.play("left");
     });
 
 
@@ -281,7 +347,8 @@ nn.on("load", () => {
     onButtonDown("moveUp", () => {
 
       // jump logic
-
+      player.doubleJump();
+      player.play("forward");
     });
 
 
@@ -289,7 +356,8 @@ nn.on("load", () => {
     onButtonDown("moveDown", () => {
 
       // move down
-
+      player.move(0, -SPEED)
+      player.play("back")
     });
 
 
@@ -299,13 +367,21 @@ nn.on("load", () => {
     function shoot () {
 
       add([
-
-        // projectile setup
-
+        circle(4),
+        color(BLUE),
+        pos(player.pos),
+        anchor("center"),
+        area(),
+        move(facing, 500),
+        offscreen({
+          destroy: true
+        }),
+        "bullet",
       ]);
 
     }
-
+    onGamepadButtonPress("south", shoot);
+    onKeyPress("f", shoot);
     // shoot controls
 
 
@@ -321,12 +397,26 @@ nn.on("load", () => {
     onUpdate(() => {
 
       // movement logic
+      const moveDir = getGamepadStick("left");
+      if (moveDir.len() > DEADZONE) {
+        player.move(moveDir.scale(SPEED));
+      }
 
       // timer logic
+      timeLeft -= dt();
+      timer.text = timeLeft.toFixed(1);
 
       // win check
+      // remix - win by reaching 50 points
+      if (gameScore >= SCORE_GOAL) {
+        go("win");
+      }
 
       // lose check
+      // remix - lose if timer runs out
+      if (timeLeft <= 0) {
+        go("lose");
+      }
 
     });
 
@@ -337,14 +427,26 @@ nn.on("load", () => {
     player.onCollide("collectible", (item) => {
 
       // collect logic
+      destroy(item);
+      play("egg_collect");
+      gameScore++;
+      scoreText.text = gameScore.toString();
 
     });
 
 
 
-    player.onCollide("enemy", () => {
+    player.onCollide("enemy", (enemy) => {
 
       // lose logic
+      // remix - lose a life instead of loosing a game
+      destroy(enemy);
+      play("chicken_hit", {volume: 0.5});
+      lives--;
+      livesDis.text = "Lives: " + lives;
+      if (lives <= 0) {
+        go("lose");
+      }
 
     });
 
@@ -353,6 +455,13 @@ nn.on("load", () => {
     onCollide("bullet", "enemy", (bullet, enemy) => {
 
       // projectile collision
+      destroy(bullet);
+      destroy(enemy);
+      // remix - when hit chicken
+      play("chicken_hit", {volume: 0.5});
+
+      gameScore += 5;
+      scoreText.text = gameScore.toString();
 
     });
 
@@ -363,6 +472,11 @@ nn.on("load", () => {
     const fade = add([
 
       // fade overlay
+      rect(width(), height()),
+      pos(0, 0),
+      color(BLACK),
+      opacity(0),
+      fixed(),
 
     ]);
 
@@ -371,6 +485,20 @@ nn.on("load", () => {
     player.onCollide("levelExit", () => {
 
       // level transition
+      tween(
+        0,
+        1,
+        0.5,
+        (value) => {
+          fade.opacity = value;
+        },
+        easings.linear
+      );
+
+      wait(0.5, () => {
+        spawnSide = "left";
+        go("level2");
+      });
 
     });
 
@@ -389,6 +517,12 @@ nn.on("load", () => {
 
 
     const scoreText = add([
+      text(gameScore.toString(), {
+        size: 24,
+      }),
+      pos(24, 24),
+      color(BLACK),
+      fixed()
 
       // score display
 
@@ -397,23 +531,51 @@ nn.on("load", () => {
 
 
     const timer = add([
+      text(timeLeft.toFixed(1)),
+      pos(width() - 24, 24),
+      anchor("topright"),
+      color(BLACK),
+      fixed()
 
       // timer display
 
+    ]);
+    
+    // remix - lives display
+    const livesDis = add([
+      text("Lives: "+ lives, {
+        size: 24,
+      }),
+      pos(24, 56),
+      color(BLACK),
+      fixed() // doesnt move with camera
     ]);
 
 
 
     const player = add([
+      sprite("player"),
+      pos(spawnSide === "left" ? 150 : width() - 150,
+        height() / 2),
+      anchor("center"),
+      area(),
+      body({ jumpForce: JUMP_FORCE, }),
+      doubleJump(),
 
       // player setup
 
     ]);
-
+    
+    player.play("forward");
 
 
     const returnExit = add([
-
+      rect(10, height()),
+      pos(0, 0),
+      area(),
+      color(MAGENTA),
+      // opacity(0)
+      "returnExit"
       // return exit
 
     ]);
@@ -423,6 +585,10 @@ nn.on("load", () => {
     // PLATFORMS
 
     makePlatform(
+      0,
+      height() - 24,
+      width(),
+      GREEN
 
       // floor platform
 
@@ -431,6 +597,14 @@ nn.on("load", () => {
 
 
     // random platforms
+    for (let i = 0; i < 12; i++) {
+      makePlatform(
+        rand(0, width() - 300),
+        rand(100, height() - 100),
+        rand(100, 350),
+        rgb(0, rand(100, 255), rand(100, 255))
+      );
+    }
 
 
 
@@ -441,20 +615,65 @@ nn.on("load", () => {
 
 
     // enemy loop
+    loop(20, () => {
+      spawnEnemyWave();
+    });
 
 
 
     // COLLECTIBLES
-
-    spawnCollectible();
+    for (let i = 0;  i < 5; i++) {
+      spawnCollectible();
+    }
 
 
 
     // collectible loop
+    loop(5, spawnCollectible);
 
 
 
     // CONTROLS
+    onButtonDown("moveRight", () => {
+
+      // move right
+      player.move(SPEED, 0);
+      facing = RIGHT;
+      playSoundEffect();
+      player.play("right");
+
+    });
+
+
+
+    onButtonDown("moveLeft", () => {
+
+      // move left
+      player.move(-SPEED, 0);
+      facing = LEFT;
+      playSoundEffect();
+      player.play("left");
+
+    });
+
+
+
+    onButtonDown("moveUp", () => {
+
+      player.doubleJump();
+      player.play("forward");
+      // jump logic
+
+    });
+
+
+
+    onButtonDown("moveDown", () => {
+
+      // move down
+      player.move(0, -SPEED)
+      player.play("back")
+    });
 
     // movement controls
 
@@ -465,12 +684,20 @@ nn.on("load", () => {
     function shoot () {
 
       add([
-
+        circle(4),
+        color(YELLOW),
+        pos(player.pos),
+        area(),
+        move(facing, 500),
+        offscreen({ destroy: true }),
+        "bullet",
         // projectile setup
 
       ]);
 
     }
+    onGamepadButtonPress("south", shoot);
+    onKeyPress("f", shoot);
 
 
 
@@ -479,14 +706,26 @@ nn.on("load", () => {
     player.onCollide("collectible", (item) => {
 
       // collect logic
+      destroy(item);
+      play("egg_collect");
+      gameScore++;
+      scoreText.text = gameScore.toString();
 
     });
 
 
 
-    player.onCollide("enemy", () => {
+    player.onCollide("enemy", (enemy) => {
 
       // lose logic
+      // remix - lose a life instead of loosing a game
+      destroy(enemy);
+      play("chicken_hit", {volume: 0.5});
+      lives--;
+      livesDis.text = "Lives: " + lives;
+      if (lives <= 0) {
+        go("lose");
+      }
 
     });
 
@@ -495,6 +734,13 @@ nn.on("load", () => {
     onCollide("bullet", "enemy", (bullet, enemy) => {
 
       // projectile collision
+      destroy(bullet);
+      destroy(enemy);
+      // remix - when hit chicken
+      play("chicken_hit", {volume: 0.5});
+
+      gameScore += 5;
+      scoreText.text = gameScore.toString();
 
     });
 
@@ -502,8 +748,12 @@ nn.on("load", () => {
 
     // CAMERA
     // camera scale
+    setCamScale(1.5);
 
     // camera follow
+    player.onUpdate(() => {
+      setCamPos(player.pos);
+    })
 
 
 
@@ -512,13 +762,29 @@ nn.on("load", () => {
     onUpdate(() => {
 
       // movement logic
+      const moveDir = getGamepadStick("left");
+      if (moveDir.len() > DEADZONE) {
+        player.move(moveDir.scale(SPEED));
+      }
 
       // timer logic
+      timeLeft -= dt();
+
+      timer.text = timeLeft.toFixed(1);
+
+      scoreText.text = gameScore.toString();
 
       // win check
+      // remix - win by reaching 50 points
+      if (gameScore >= SCORE_GOAL) {
+        go("win");
+      }
 
       // lose check
-
+      // remix - lose if timer runs out
+      if (timeLeft <= 0) {
+        go("lose");
+      }
     });
 
 
@@ -526,6 +792,8 @@ nn.on("load", () => {
     player.onCollide("returnExit", () => {
 
       // return transition
+      spawnSide = "right";
+      go("level1");
 
     });
 
@@ -538,7 +806,12 @@ nn.on("load", () => {
   scene("win", () => {
 
     add([
-
+      text(`YOU WIN!\nScore:${gameScore}`, {
+        size: 32,
+      }),
+      pos(center()),
+      anchor("center"),
+      color(BLACK)
       // win text
 
     ]);
@@ -546,7 +819,10 @@ nn.on("load", () => {
 
 
     add([
-
+      text("Press ENTER to play again"),
+      pos(center().add(0, 120)),
+      anchor("center"),
+      color(BLACK)
       // restart text
 
     ]);
@@ -556,9 +832,12 @@ nn.on("load", () => {
     onKeyPress("enter", () => {
 
       // reset variables
-
+      gameScore = 0;
+      timeLeft = 30;
+      // remix - resetting lives
+      lives = 3;
       // restart game
-
+      go("level1");
     });
 
   });
@@ -570,7 +849,13 @@ nn.on("load", () => {
   scene("lose", () => {
 
     add([
-
+      // showing attained score after loosing
+      text("YOU LOSE \n Score: " + gameScore, {
+        size: 48,
+      }),
+      color(BLACK),
+      pos(center()),
+      anchor("center"),
       // lose text
 
     ]);
@@ -578,7 +863,10 @@ nn.on("load", () => {
 
 
     add([
-
+      text("Press ENTER to try again"),
+      pos(center().add(0, 80)),
+      anchor("center"),
+      color(BLACK),
       // restart text
 
     ]);
@@ -588,8 +876,12 @@ nn.on("load", () => {
     onKeyPress("enter", () => {
 
       // reset variables
-
+      gameScore = 0;
+      timeLeft = 30;
+      // remix - resetting lives
+      lives = 3;
       // restart game
+      go("level1");
 
     });
 
@@ -602,6 +894,10 @@ nn.on("load", () => {
   onLoad(() => {
 
     // music start
+    bgm = play("bg_music", {
+      loop: true,
+      volume: 0.5,
+    });
 
   });
 
@@ -610,6 +906,7 @@ nn.on("load", () => {
   onKeyPress("space", () => {
 
     // music toggle
+    bgm.paused = !bgm.paused;
 
   });
 
@@ -620,3 +917,4 @@ nn.on("load", () => {
   go("level1");
 
 });
+
